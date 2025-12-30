@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  ryu:
+    platform: linux/amd64
+    build:
+      context: ./docker/ryu
+      dockerfile: Dockerfile
+      # on Apple Silicon, force running linux/amd64 for compatibility
+    image: ryu:4.34-3.7.18
+    container_name: ryu-controller
+    restart: unless-stopped
+    ports:
+      - "6633:6633"
+      - "6653:6653"
+      - "8080:8080"
+    networks:
+      - sdn-net
+
+  mininet:
+    platform: linux/amd64
+    build:
+      context: ./docker/mininet-wifi
+      dockerfile: Dockerfile
+    image: mininet-wifi:2.5.0-ovs2.15.3
+    container_name: mininet-wifi
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+      - NET_RAW
+    privileged: true
+    volumes:
+      - /lib/modules:/lib/modules:ro  # optional: share kernel modules if available in VM
+    stdin_open: true
+    tty: true
+    networks:
+      - sdn-net
+
+networks:
+  sdn-net:
+    driver: bridge
